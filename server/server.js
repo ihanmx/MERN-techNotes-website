@@ -4,6 +4,7 @@ const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 5000;
 const rootRoute = require("./routes/root");
+const userRoutes = require("./routes/useRoutes");
 const { logger, logEvents } = require("./middleware/logger");
 const errorHandler = require("./middleware/errorHandler");
 const cookieParser = require("cookie-parser");
@@ -20,6 +21,7 @@ app.use(cookieParser());
 app.use("/", express.static(path.join(__dirname, "public")));
 
 app.use("/", rootRoute);
+app.use("/users", userRoutes);
 // /* not supported
 app.all("/{*path}", (req, res) => {
   res.status(404);
