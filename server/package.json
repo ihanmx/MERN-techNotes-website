@@ -11,11 +11,13 @@
     "dev": "nodemon server"
   },
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "date-fns": "^4.1.0",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "express-async-handler": "^1.2.0",
     "mongoose": "^9.4.1",
     "mongoose-sequence": "^6.0.1",
     "uuid": "^13.0.0"
