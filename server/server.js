@@ -1,15 +1,18 @@
+require("dotenv").config();
 const express = require("express");
 const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 5000;
 const rootRoute = require("./routes/root");
-const { logger } = require("./middleware/logger");
+const { logger, logEvents } = require("./middleware/logger");
 const errorHandler = require("./middleware/errorHandler");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const corsOptions = require("./config/corsOptions");
+const mongoose = require("mongoose");
+const connectDB = require("./config/dbConnect");
 //so the public images and assets accessed through the root http://localhost:5000/image.png
-
+connectDB();
 app.use(logger);
 app.use(cors(corsOptions));
 app.use(express.json());
@@ -30,6 +33,17 @@ app.all("/{*path}", (req, res) => {
 });
 
 app.use(errorHandler);
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+
+mongoose.connection.once("open", () => {
+  console.log("Connected to MongoDB");
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+});
+mongoose.connection.on("error", (err) => {
+  console.log(err);
+  logEvents(
+    `${err.no}: ${err.code}\t${err.syscall}\t${err.hostname}`,
+    "mongoErrLog.log",
+  );
 });
