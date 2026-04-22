@@ -51,7 +51,7 @@ const Login = () => {
     setPassword(e.target.value);
     setErrMsg("");
   };
-  const handleToggle = (e) => {
+  const handleToggle = () => {
     setPersist((prev) => !prev);
   };
 

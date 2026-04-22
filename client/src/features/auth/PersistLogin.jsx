@@ -24,7 +24,7 @@ const PersistLogin = () => {
     return (
       <p className="errmsg">
         {error?.data?.message ?? "Session expired."}{" "}
-        <Link to="/login">Please login again</Link>
+        <Link to="/login"> Please login again</Link>
       </p>
     );
   }

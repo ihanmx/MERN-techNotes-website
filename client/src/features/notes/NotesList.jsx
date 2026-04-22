@@ -1,5 +1,6 @@
 import { useGetNotesQuery } from "./notesApiSlice";
 import Note from "./Note";
+import useAuth from "../../hooks/useAuth";
 
 const NotesList = () => {
   const {
@@ -14,6 +15,8 @@ const NotesList = () => {
     refetchOnMountOrArgChange: true,
   });
 
+  const { username, isManager, isAdmin } = useAuth();
+
   let content;
 
   if (isLoading) content = <p>Loading...</p>;
@@ -23,11 +26,25 @@ const NotesList = () => {
   }
 
   if (isSuccess) {
-    const { ids } = notes;
+    const { ids, entities } = notes;
+    let filteredIds;
 
-    const tableContent = ids?.length
-      ? ids.map((noteId) => <Note key={noteId} noteId={noteId} />)
-      : null;
+    if (isAdmin || isManager) {
+      filteredIds = [...ids]; //Admins and manages should see all notes
+    } else {
+      filteredIds = ids.filter(
+        (noteId) => entities[noteId].username === username,
+      );
+    }
+    const tableContent = filteredIds.length
+      ? filteredIds.map((noteId) => <Note key={noteId} noteId={noteId} />)
+      : (
+          <tr>
+            <td colSpan="6" style={{ textAlign: "center", padding: "1rem" }}>
+              No notes assigned to you.
+            </td>
+          </tr>
+        );
 
     content = (
       <table className="table table--notes">
