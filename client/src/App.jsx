@@ -14,7 +14,9 @@ import Prefetch from "./components/Prefetch";
 import PersistLogin from "./features/auth/PersistLogin";
 import RequireAuth from "./features/auth/RequireAuth";
 import { ROLES } from "./config/roles";
+import useTitle from "./hooks/useTitle";
 function App() {
+  useTitle("E-notes");
   return (
     <Routes>
       <Route path="/" element={<Layout />}>
@@ -37,14 +39,17 @@ function App() {
                 </Route>
 
                 {/* Manager/Admin only */}
-                <Route element={<RequireAuth allowedRoles={[ROLES.Manager, ROLES.Admin]} />}>
+                <Route
+                  element={
+                    <RequireAuth allowedRoles={[ROLES.Manager, ROLES.Admin]} />
+                  }
+                >
                   <Route path="users">
                     <Route index element={<UsersList />} />
                     <Route path=":id" element={<EditUser />} />
                     <Route path="new" element={<NewUserForm />} />
                   </Route>
                 </Route>
-
               </Route>
             </Route>
           </Route>

@@ -23,11 +23,13 @@ const getAllUsers = asyncHandler(async (req, res) => {
 // @access Private
 
 const createNewUser = asyncHandler(async (req, res) => {
-  const { username, password, roles } = req.body;
+  let { username, password, roles } = req.body;
   //confirm data
-  if (!username || !password || !Array.isArray(roles) || !roles.length) {
+  if (!username || !password) {
     return res.status(400).json({ message: "All field are required" });
   }
+
+  username = username.trim().toLowerCase();
 
   const duplicate = await User.findOne({ username }).lean().exec(); //// With .exec() — returns a true Promise (preferred)
 
@@ -39,7 +41,10 @@ const createNewUser = asyncHandler(async (req, res) => {
   //hash password
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  const UserObj = { username, password: hashedPassword, roles };
+  const UserObj =
+    !Array.isArray(roles) || !roles.length
+      ? { username, password: hashedPassword }
+      : { username, password: hashedPassword, roles };
 
   //Create and store new user
   const user = await User.create(UserObj);
@@ -57,7 +62,7 @@ const createNewUser = asyncHandler(async (req, res) => {
 // @access Private
 
 const updateUser = asyncHandler(async (req, res) => {
-  const { id, username, password, roles, active } = req.body;
+  let { id, username, password, roles, active } = req.body;
 
   //confirm data
   if (
@@ -69,6 +74,8 @@ const updateUser = asyncHandler(async (req, res) => {
   ) {
     return res.status(400).json({ message: "All field are required" });
   }
+
+  username = username.trim().toLowerCase();
 
   const user = await User.findById(id).exec(); //no lean because we want this as mongoose doc with save and so on not js obj
   //exec makes is as promise so error stack trace is cleaner and more useful
