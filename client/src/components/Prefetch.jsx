@@ -1,12 +1,20 @@
-import { store } from "../../../app/store";
-import { notesApiSlice } from "../notes/notesApiSlice";
-import { usersApiSlice } from "../users/usersApiSlice";
+import { store } from "../app/store";
+import { notesApiSlice } from "../features/notes/notesApiSlice";
+import { usersApiSlice } from "../features/users/usersApiSlice";
 import { useEffect } from "react";
 import { Outlet } from "react-router-dom";
-
+import { selectCurrentToken } from "../features/auth/authSlice";
+import { useSelector } from "react-redux";
 const Prefetch = () => {
+  const token = useSelector(selectCurrentToken);
   useEffect(() => {
+    // Skip prefetching when logged out — prevents stray requests after logout
+    // while Prefetch is still mounted but token has been cleared.
+    if (!token) return;
+    if (!token) return;
+
     console.log("subscribing");
+
     //manual subsicribtion
     const notes = store.dispatch(notesApiSlice.endpoints.getNotes.initiate());
     const users = store.dispatch(usersApiSlice.endpoints.getUsers.initiate());
@@ -17,7 +25,7 @@ const Prefetch = () => {
       notes.unsubscribe();
       users.unsubscribe();
     };
-  }, []);
+  }, [token]);
   return <Outlet />;
 };
 
