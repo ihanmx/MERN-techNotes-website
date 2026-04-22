@@ -8,7 +8,7 @@ const NewNote = () => {
   const content = users?.length ? (
     <NewNoteForm users={users} />
   ) : (
-    <p>Loading...</p>
+    <p>Not Currently Available </p>
   );
 
   return content;
