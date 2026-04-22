@@ -1,31 +1,24 @@
-import { store } from "../app/store";
-import { notesApiSlice } from "../features/notes/notesApiSlice";
-import { usersApiSlice } from "../features/users/usersApiSlice";
 import { useEffect } from "react";
 import { Outlet } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
 import { selectCurrentToken } from "../features/auth/authSlice";
-import { useSelector } from "react-redux";
+import { notesApiSlice } from "../features/notes/notesApiSlice";
+import { usersApiSlice } from "../features/users/usersApiSlice";
+
 const Prefetch = () => {
   const token = useSelector(selectCurrentToken);
+  const dispatch = useDispatch();
+
   useEffect(() => {
-    // Skip prefetching when logged out — prevents stray requests after logout
-    // while Prefetch is still mounted but token has been cleared.
     if (!token) return;
-    if (!token) return;
+    dispatch(
+      notesApiSlice.util.prefetch("getNotes", undefined, { force: true }),
+    );
+    dispatch(
+      usersApiSlice.util.prefetch("getUsers", undefined, { force: true }),
+    );
+  }, [token, dispatch]);
 
-    console.log("subscribing");
-
-    //manual subsicribtion
-    const notes = store.dispatch(notesApiSlice.endpoints.getNotes.initiate());
-    const users = store.dispatch(usersApiSlice.endpoints.getUsers.initiate());
-
-    //cleanup
-    return () => {
-      console.log("unsubscribing");
-      notes.unsubscribe();
-      users.unsubscribe();
-    };
-  }, [token]);
   return <Outlet />;
 };
 
@@ -38,3 +31,19 @@ export default Prefetch;
 //No loading spinners — data is already cached when pages mount.
 // Cache survives navigation — notes → users → notes stays instant, no refetch.
 // Central control — polling/refetch options live in one place, not duplicated per componen
+
+// initiate vs prefetch
+// initiate = "I want this data and I'm holding onto it."
+
+// Fires the request + creates a subscription (keeps data in cache).
+// You must call .unsubscribe() to release it.
+// More code, more lifecycle to manage.
+// prefetch = "Load this into the cache now, I don't care after that."
+
+// Fires the request, no subscription.
+// Data follows normal cache rules (keepUnusedDataFor, default 60s).
+// Zero cleanup.
+// Analogy
+// initiate = renting a parking spot — you keep it until you leave.
+// prefetch = dropping a package off — it sits there until someone picks it up or it expires.
+// For a "warm the cache before user needs it" component like yours, prefetch is the right tool.

@@ -7,11 +7,13 @@ const asyncHandler = require("express-async-handler");
 // @route POST /auth
 // @access Public
 const login = asyncHandler(async (req, res) => {
-  const { username, password } = req.body;
+  let { username, password } = req.body;
 
   if (!username || !password) {
     return res.status(400).json({ message: "All fields are required" });
   }
+
+  username = username.trim().toLowerCase();
 
   const foundUser = await User.findOne({ username }).exec();
 
