@@ -5,11 +5,13 @@ const verifyJWT = require("../middleware/verifyJWT");
 const requireRoles = require("../middleware/requireRoles");
 
 router.use(verifyJWT);
+
+router.route("/").get(userController.getAllUsers);
+
 router.use(requireRoles("Manager", "Admin"));
 
 router
   .route("/")
-  .get(userController.getAllUsers)
   .post(userController.createNewUser)
   .patch(userController.updateUser)
   .delete(userController.deleteUser);
