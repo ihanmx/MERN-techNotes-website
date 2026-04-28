@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist",
+
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "target": "esnext",
+
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
+
+// strict	Turn on all safety checks. Always keep true. This is 90% of why TS exists.
+// target	Which JS version to compile down to. (ESNext = modern Node, don't worry about it.)
+// module	CommonJS vs ESM. We picked nodenext → modern ESM. Done.
+// rootDir / outDir	Where your .ts source lives / where compiled .js goes.
+// include / exclude	What counts as "my project" (you just learned this).
