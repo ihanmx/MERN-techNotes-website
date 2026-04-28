@@ -1,17 +1,21 @@
 import { memo } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPenToSquare } from "@fortawesome/free-solid-svg-icons";
+import { faPenToSquare, faUser } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
 import { useGetUsersQuery } from "./usersApiSlice";
+import { Badge, IconButton } from "../../ui";
 
 interface UserProps {
   userId: string;
 }
-// selectFromResult lets a component subscribe only to a slice of the cached query data. This component re-renders only when data.entities[userId] changes — not when any user changes.
 
-// TS-wise: the input ({ data }) is typed automatically (RTK knows the cache shape). The output is whatever shape you return — here, { user: IUser | undefined }
+const roleTone = (role: string) => {
+  if (role === "Admin") return "danger" as const;
+  if (role === "Manager") return "warning" as const;
+  return "secondary" as const;
+};
+
 const User = ({ userId }: UserProps) => {
-  // undefined here is a placeholder for an argument the query doesn't actually need. Let me unpack it.
   const { user } = useGetUsersQuery(undefined, {
     selectFromResult: ({ data }) => ({
       user: data?.entities[userId],
@@ -23,17 +27,36 @@ const User = ({ userId }: UserProps) => {
   if (!user) return null;
 
   const handleEdit = () => navigate(`/dash/users/${userId}`);
-  const userRolesString = user.roles.join(", ");
-  const cellStatus = user.active ? "" : "table__cell--inactive";
+  const inactiveClass = user.active ? "" : "opacity-50";
 
   return (
-    <tr className="table__row user">
-      <td className={`table__cell ${cellStatus}`}>{user.username}</td>
-      <td className={`table__cell ${cellStatus}`}>{userRolesString}</td>
-      <td className={`table__cell ${cellStatus}`}>
-        <button className="icon-button table__button" onClick={handleEdit}>
+    <tr className={`hover:bg-white/5 transition-colors ${inactiveClass}`}>
+      <td className="px-4 py-3">
+        <div className="flex items-center gap-3">
+          <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary-500/15 text-primary-300 text-sm">
+            <FontAwesomeIcon icon={faUser} />
+          </span>
+          <div>
+            <div className="font-semibold text-ink-100">{user.username}</div>
+            {!user.active && (
+              <div className="text-xs text-ink-500">Inactive</div>
+            )}
+          </div>
+        </div>
+      </td>
+      <td className="px-4 py-3">
+        <div className="flex flex-wrap gap-1.5">
+          {user.roles.map((role) => (
+            <Badge key={role} tone={roleTone(role)}>
+              {role}
+            </Badge>
+          ))}
+        </div>
+      </td>
+      <td className="px-4 py-3 text-right">
+        <IconButton tone="primary" label="Edit user" onClick={handleEdit}>
           <FontAwesomeIcon icon={faPenToSquare} />
-        </button>
+        </IconButton>
       </td>
     </tr>
   );

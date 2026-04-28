@@ -1,366 +1,211 @@
-@import url("https://fonts.googleapis.com/css2?family=Nunito&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap");
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+@import "tailwindcss";
+
+/* =====================================================================
+   DESIGN SYSTEM — techNotes
+   ---------------------------------------------------------------------
+   Identity: a calm, professional tech-product palette.
+   - Primary: Indigo (Brand / Action) — trust, focus, intellect.
+   - Secondary: Cyan (Accent / Highlight) — energy, clarity, "tech".
+   - Neutrals: Slate-based grays for surfaces and text.
+   Fonts: Inter (UI, OFL — free for commercial use), JetBrains Mono
+   (numerals / IDs, OFL — free for commercial use).
+   ===================================================================== */
+
+@theme {
+  /* ---------- Typography ---------- */
+  --font-sans:
+    "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-mono:
+    "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* ---------- Brand: Primary (Indigo) ---------- */
+  --color-primary-50: #eef2ff;
+  --color-primary-100: #e0e7ff;
+  --color-primary-200: #c7d2fe;
+  --color-primary-300: #a5b4fc;
+  --color-primary-400: #818cf8;
+  --color-primary-500: #6366f1;
+  --color-primary-600: #4f46e5;
+  --color-primary-700: #4338ca;
+  --color-primary-800: #3730a3;
+  --color-primary-900: #312e81;
+  --color-primary-950: #1e1b4b;
+
+  /* ---------- Brand: Secondary (Cyan) ---------- */
+  --color-secondary-50: #ecfeff;
+  --color-secondary-100: #cffafe;
+  --color-secondary-200: #a5f3fc;
+  --color-secondary-300: #67e8f9;
+  --color-secondary-400: #22d3ee;
+  --color-secondary-500: #06b6d4;
+  --color-secondary-600: #0891b2;
+  --color-secondary-700: #0e7490;
+  --color-secondary-800: #155e75;
+  --color-secondary-900: #164e63;
+
+  /* ---------- Surface / Neutrals ---------- */
+  --color-surface-0: #0b1020; /* page bg (deep) */
+  --color-surface-1: #0f172a; /* section bg */
+  --color-surface-2: #1e293b; /* card bg */
+  --color-surface-3: #334155; /* card hover / border */
+  --color-ink-100: #f8fafc;
+  --color-ink-200: #e2e8f0;
+  --color-ink-300: #cbd5e1;
+  --color-ink-400: #94a3b8;
+  --color-ink-500: #64748b;
+
+  /* ---------- Status ---------- */
+  --color-success-400: #34d399;
+  --color-success-500: #10b981;
+  --color-success-600: #059669;
+  --color-danger-400: #f87171;
+  --color-danger-500: #ef4444;
+  --color-danger-600: #dc2626;
+  --color-warning-400: #fbbf24;
+  --color-warning-500: #f59e0b;
+
+  /* ---------- Radii ---------- */
+  --radius-xs: 0.375rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.5rem;
+
+  /* ---------- Shadows ---------- */
+  --shadow-soft: 0 1px 2px rgba(15, 23, 42, 0.18), 0 1px 3px rgba(15, 23, 42, 0.12);
+  --shadow-card: 0 10px 25px -10px rgba(2, 6, 23, 0.55), 0 4px 10px -4px rgba(2, 6, 23, 0.35);
+  --shadow-glow: 0 0 0 1px rgba(99, 102, 241, 0.35), 0 8px 30px -8px rgba(99, 102, 241, 0.45);
 }
 
-/* || VARIABLES */
+/* =====================================================================
+   GLOBAL BASE
+   ===================================================================== */
 
-:root {
-  /* COLORS */
-  --BGCOLOR: #0f172a;
-  --BORDER-COLOR: #fff;
-  --COLOR: #fff;
-  --ERROR: firebrick;
-  --INACTIVE: lightgray;
-  --LINK-COLOR: whitesmoke;
-  --LINK-HOVER: rgba(245, 245, 245, 0.9);
-  --NOTE-BGCOLOR: hsla(240, 64%, 27%, 0.65);
-  --STATUS-COMPLETE: limegreen;
-  --STATUS-OPEN: firebrick;
-  --TABLE-BGCOLOR: #fff;
-  --TABLE-COLOR: #000;
-}
-
-/* || UTILITY CLASSES */
-.errmsg {
-  display: inline-block;
-  background-color: var(--TABLE-BGCOLOR);
-  color: var(--ERROR);
-  padding: 0.25em;
-  margin-bottom: 0.5em;
-}
-
-.nowrap {
-  white-space: nowrap;
-}
-
-.icon-button {
-  width: 48px;
-  height: 48px;
-  font-size: 2.5rem;
-  background-color: transparent;
-  border: none;
-  color: var(--COLOR);
-  display: grid;
-  place-content: center;
-}
-
-.icon-button:hover,
-.icon-button:focus-visible {
-  transform: scale(1.2);
-}
-
-.icon-button[disabled] {
-  visibility: hidden;
-}
-
-/* || GENERAL STYLES */
-
-body {
-  font-family: "Nunito", sans-serif;
-  min-height: 100vh;
-  background-color: var(--BGCOLOR);
-  color: var(--COLOR);
-  background-image: url("./assets/img/background.jpg");
-  background-size: cover;
-  background-position: top right;
-  background-blend-mode: multiply;
-}
-
-input,
-button,
-textarea,
-select {
-  font: inherit;
-}
-
-#root {
-  /* React root div */
-  min-height: 100vh;
-  display: flex;
-  flex-flow: column nowrap;
-}
-
-a {
-  text-decoration: none;
-}
-
-a,
-a:visited {
-  color: var(--LINK-COLOR);
-}
-
-a:hover,
-a:focus-visible {
-  color: var(--LINK-HOVER);
-}
-
-/* || PAGES */
-
-.public,
-.welcome {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.public {
-  padding: 1em;
-  flex-grow: 1;
-}
-
-.public__main,
-.login {
-  flex-grow: 1;
-  border-top: 2px solid var(--BORDER-COLOR);
-  border-bottom: 2px solid var(--BORDER-COLOR);
-  padding: 1em 0;
-}
-
-.public__addr {
-  margin-top: 1em;
-}
-
-.welcome a::before {
-  content: "➜ ";
-}
-
-/* || DASH HEADER, CONTAINER & FOOTER */
-
-.dash-header {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  background-color: var(--BGCOLOR);
-  padding: 0 0.5em;
-  border-bottom: 1px solid var(--BORDER-COLOR);
-}
-
-.dash-header__container {
-  display: flex;
-  flex-flow: row nowrap;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.dash-header__nav {
-  display: flex;
-  flex-flow: row nowrap;
-  justify-content: flex-end;
-  gap: 0.5em;
-}
-
-.dash-container {
-  padding: 0.75em 0.5em 0.5em;
-  flex-grow: 1;
-}
-
-.dash-footer {
-  font-size: 1rem;
-  position: sticky;
-  bottom: 0;
-  z-index: 1;
-  background-color: var(--BGCOLOR);
-  padding: 0.5em;
-  border-top: 1px solid var(--BORDER-COLOR);
-  display: flex;
-  flex-flow: row nowrap;
-  justify-content: flex-start;
-  gap: 1em;
-}
-
-.dash-footer__button {
-  font-size: 1rem;
-  width: auto;
-  height: auto;
-}
-
-/* || TABLES - GENERAL */
-
-thead,
-tbody,
-tr {
-  display: contents;
-}
-
-.table {
-  font-size: 1rem;
-  width: 100%;
-  display: grid;
-  grid-template-columns: 1fr 2fr 1fr;
-  color: var(--TABLE-COLOR);
-  gap: 0.1em;
-}
-
-.table__button {
-  padding: 0.25em;
-  font-size: 1.5rem;
-  color: var(--TABLE-COLOR);
-}
-
-.table__thead {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-}
-
-.table__th,
-.table__cell {
-  background-color: var(--TABLE-BGCOLOR);
-  text-align: left;
-  border: 1px solid var(--TABLE-COLOR);
-  padding: 0.5em;
-}
-
-.table__cell:last-child {
-  display: grid;
-  place-content: center;
-}
-
-.table__cell--inactive {
-  background-color: var(--INACTIVE);
-}
-
-/* ||  NOTE */
-
-.note__created,
-.note__updated,
-.note__username {
-  display: none;
-}
-
-.note__status {
-  font-weight: bold;
-}
-
-.note__status--open {
-  color: var(--STATUS-OPEN);
-}
-
-.note__status--completed {
-  color: var(--STATUS-COMPLETE);
-}
-
-/* || FORM - GENERAL */
-
-.form {
-  display: flex;
-  flex-flow: column nowrap;
-  gap: 0.75em;
-  max-width: 800px;
-}
-
-.form__checkbox-container {
-  display: flex;
-  align-items: center;
-  width: fit-content;
-  gap: 0.5em;
-}
-
-.form__persist {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  gap: 0.5em;
-}
-
-.form__title-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.form__input,
-.form__submit-button {
-  padding: 0.5em;
-  border-radius: 15px;
-}
-
-.form__input--text {
-  min-height: 150px;
-}
-
-.form__input--incomplete {
-  border: 1px solid red;
-  outline: 1px solid red;
-}
-
-.form__checkbox {
-  width: 24px;
-  height: 24px;
-}
-
-.form__select {
-  width: fit-content;
-  padding: 0.25em;
-}
-
-.form__action-buttons {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 0.5em;
-  position: absolute;
-  right: 0.5em;
-}
-
-.form__row {
-  display: flex;
-  flex-flow: row nowrap;
-  gap: 2em;
-}
-
-.form__divider {
-  display: flex;
-  flex-flow: column nowrap;
-  gap: 0.5em;
-}
-
-@media screen and (max-width: 400px) {
-  h1 {
-    font-size: 2rem;
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
   }
 
-  .dash-header__nav {
-    gap: 0;
+  html,
+  body,
+  #root {
+    min-height: 100vh;
   }
 
-  .icon-button {
-    font-size: 1.5rem;
-  }
-}
-
-@media screen and (min-width: 768px) {
   body {
-    font-size: 1.25rem;
+    margin: 0;
+    font-family: var(--font-sans);
+    color: var(--color-ink-100);
+    background:
+      radial-gradient(
+        1200px 600px at 85% -10%,
+        rgba(99, 102, 241, 0.18),
+        transparent 60%
+      ),
+      radial-gradient(
+        900px 500px at -10% 110%,
+        rgba(6, 182, 212, 0.14),
+        transparent 60%
+      ),
+      linear-gradient(180deg, #0b1020 0%, #0f172a 100%);
+    background-attachment: fixed;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
-  .dash-header {
-    padding: 0 1em;
+  #root {
+    display: flex;
+    flex-direction: column;
   }
 
-  .dash-container {
-    padding: 1em;
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-weight: 700;
+    letter-spacing: -0.01em;
   }
 
-  .table {
-    font-size: 1.5rem;
+  a {
+    color: inherit;
+    text-decoration: none;
   }
 
-  .table--notes {
-    grid-template-columns: repeat(3, 1fr) 2fr repeat(2, 1fr);
+  ::selection {
+    background: var(--color-primary-500);
+    color: white;
   }
 
-  .note__created,
-  .note__updated,
-  .note__username {
-    display: block;
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-surface-3);
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-primary-600);
+  }
+}
+
+/* =====================================================================
+   UTILITIES — small reusable primitives used across atoms
+   ===================================================================== */
+
+@layer utilities {
+  .surface-card {
+    background: linear-gradient(
+      180deg,
+      rgba(30, 41, 59, 0.85) 0%,
+      rgba(15, 23, 42, 0.85) 100%
+    );
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-card);
   }
 
-  .form__action-buttons {
-    position: static;
+  .focus-ring {
+    outline: none;
+  }
+  .focus-ring:focus-visible {
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.45);
+    border-color: var(--color-primary-500) !important;
+  }
+
+  .offscreen {
+    position: absolute;
+    left: -10000px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .nowrap {
+    white-space: nowrap;
+  }
+
+  /* Legacy hooks kept for safety — still used by code paths if any remain */
+  .errmsg {
+    display: inline-block;
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--color-danger-400);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
   }
 }

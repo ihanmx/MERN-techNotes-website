@@ -5,9 +5,9 @@ import DashFooter from "./DashFooter";
 const DashLayout = () => (
   <>
     <DashHeader />
-    <div className="dash-container">
+    <main className="flex-1 mx-auto w-full max-w-7xl px-4 sm:px-6 py-6 sm:py-8">
       <Outlet />
-    </div>
+    </main>
     <DashFooter />
   </>
 );

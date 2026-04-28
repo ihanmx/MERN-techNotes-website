@@ -1,7 +1,7 @@
-import { PulseLoader } from "react-spinners";
 import { useGetUsersQuery } from "../users/usersApiSlice";
 import type { IUser } from "../users/usersApiSlice";
 import NewNoteForm from "./NewNoteForm";
+import { Spinner } from "../../ui";
 
 const NewNote = () => {
   const { users } = useGetUsersQuery(undefined, {
@@ -14,7 +14,12 @@ const NewNote = () => {
     }),
   });
 
-  if (!users.length) return <PulseLoader color="#FFF" />;
+  if (!users.length)
+    return (
+      <div className="py-10 flex justify-center">
+        <Spinner size={32} label="Loading users..." />
+      </div>
+    );
 
   return <NewNoteForm users={users} />;
 };

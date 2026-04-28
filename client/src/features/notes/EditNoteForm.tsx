@@ -8,6 +8,18 @@ import { useUpdateNoteMutation, useDeleteNoteMutation } from "./notesApiSlice";
 import type { INote } from "./notesApiSlice";
 import type { IUser } from "../users/usersApiSlice";
 import useAuth from "../../hooks/useAuth";
+import {
+  Alert,
+  Badge,
+  Card,
+  Checkbox,
+  IconButton,
+  Input,
+  Label,
+  PageHeader,
+  Select,
+  Textarea,
+} from "../../ui";
 
 interface EditNoteFormProps {
   note: INote;
@@ -86,118 +98,139 @@ const EditNoteForm = ({ note, users }: EditNoteFormProps) => {
   };
 
   const options = users.map((user) => (
-    <option key={user.id} value={user.id}>
+    <option key={user.id} value={user.id} className="bg-surface-2 text-ink-100">
       {user.username}
     </option>
   ));
 
-  const errClass = isError || isDelError ? "errmsg" : "offscreen";
-  const validTitleClass = !title ? "form__input--incomplete" : "";
-  const validTextClass = !text ? "form__input--incomplete" : "";
   const errContent = getErrorMessage(error) || getErrorMessage(delerror);
+  const showError = (isError || isDelError) && errContent;
 
   return (
-    <>
-      <p className={errClass}>{errContent}</p>
-
-      <form className="form" onSubmit={(e) => e.preventDefault()}>
-        <div className="form__title-row">
-          <h2>Edit Note #{note.ticket}</h2>
-          <div className="form__action-buttons">
-            <button
-              type="button"
-              className="icon-button"
-              title="Save"
+    <section>
+      <PageHeader
+        title={
+          <span className="inline-flex items-center gap-3 flex-wrap">
+            Edit Note
+            <Badge tone="secondary" className="font-mono">
+              #{note.ticket}
+            </Badge>
+          </span>
+        }
+        subtitle={
+          completed ? (
+            <Badge tone="success" dot>
+              Completed
+            </Badge>
+          ) : (
+            <Badge tone="danger" dot>
+              Open
+            </Badge>
+          )
+        }
+        actions={
+          <>
+            <IconButton
+              tone="primary"
+              label="Save"
               onClick={onSaveNoteClicked}
               disabled={!canSave}
             >
               <FontAwesomeIcon icon={faSave} />
-            </button>
+            </IconButton>
             {(isManager || isAdmin) && (
-              <button
-                type="button"
-                className="icon-button"
-                title="Delete"
+              <IconButton
+                tone="danger"
+                label="Delete"
                 onClick={onDeleteNoteClicked}
               >
                 <FontAwesomeIcon icon={faTrashCan} />
-              </button>
+              </IconButton>
             )}
-          </div>
+          </>
+        }
+      />
+
+      {showError && (
+        <div className="mb-5">
+          <Alert tone="danger">{errContent}</Alert>
         </div>
+      )}
 
-        <label className="form__label" htmlFor="note-title">
-          Title:
-        </label>
-        <input
-          className={`form__input ${validTitleClass}`}
-          id="note-title"
-          name="title"
-          type="text"
-          autoComplete="off"
-          value={title}
-          onChange={onTitleChanged}
-        />
+      <Card>
+        <form
+          className="space-y-5"
+          onSubmit={(e) => e.preventDefault()}
+        >
+          <div>
+            <Label htmlFor="note-title">Title</Label>
+            <Input
+              id="note-title"
+              name="title"
+              type="text"
+              autoComplete="off"
+              value={title}
+              onChange={onTitleChanged}
+              invalid={!title}
+            />
+          </div>
 
-        <label className="form__label" htmlFor="note-text">
-          Text:
-        </label>
-        <textarea
-          className={`form__input form__input--text ${validTextClass}`}
-          id="note-text"
-          name="text"
-          value={text}
-          onChange={onTextChanged}
-        />
+          <div>
+            <Label htmlFor="note-text">Text</Label>
+            <Textarea
+              id="note-text"
+              name="text"
+              value={text}
+              onChange={onTextChanged}
+              invalid={!text}
+            />
+          </div>
 
-        <div className="form__row">
-          <div className="form__divider">
-            <label
-              className="form__label form__checkbox-container"
-              htmlFor="note-completed"
-            >
-              WORK COMPLETE:
-              <input
-                className="form__checkbox"
+          <div className="grid lg:grid-cols-2 gap-6 pt-2">
+            <div className="space-y-4">
+              <Checkbox
                 id="note-completed"
                 name="completed"
-                type="checkbox"
                 checked={completed}
                 onChange={onCompletedChanged}
+                label="Work complete"
               />
-            </label>
 
-            <label
-              className="form__label form__checkbox-container"
-              htmlFor="note-username"
-            >
-              ASSIGNED TO:
-            </label>
-            <select
-              id="note-username"
-              name="username"
-              className="form__select"
-              value={userId}
-              onChange={onUserIdChanged}
-            >
-              {options}
-            </select>
+              <div>
+                <Label htmlFor="note-username">Assigned to</Label>
+                <Select
+                  id="note-username"
+                  name="username"
+                  value={userId}
+                  onChange={onUserIdChanged}
+                >
+                  {options}
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-3 text-sm">
+              <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+                <div className="text-xs uppercase tracking-wider text-ink-400">
+                  Created
+                </div>
+                <div className="mt-1 text-ink-100 font-medium">
+                  {formatDateTime(note.createdAt)}
+                </div>
+              </div>
+              <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+                <div className="text-xs uppercase tracking-wider text-ink-400">
+                  Last updated
+                </div>
+                <div className="mt-1 text-ink-100 font-medium">
+                  {formatDateTime(note.updatedAt)}
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="form__divider">
-            <p className="form__created">
-              Created:
-              <br />
-              {formatDateTime(note.createdAt)}
-            </p>
-            <p className="form__updated">
-              Updated:
-              <br />
-              {formatDateTime(note.updatedAt)}
-            </p>
-          </div>
-        </div>
-      </form>
-    </>
+        </form>
+      </Card>
+    </section>
   );
 };
 
