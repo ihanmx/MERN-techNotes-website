@@ -8,6 +8,16 @@ import { useUpdateUserMutation, useDeleteUserMutation } from "./usersApiSlice";
 import type { IUser } from "./usersApiSlice";
 import { ROLES } from "../../config/roles";
 import type { Role } from "../../config/roles";
+import {
+  Alert,
+  Card,
+  Checkbox,
+  IconButton,
+  Input,
+  Label,
+  PageHeader,
+  Select,
+} from "../../ui";
 
 const USER_REGEX = /^[A-z]{3,20}$/;
 const PWD_REGEX = /^[A-z0-9!@#$%]{4,12}$/;
@@ -77,7 +87,7 @@ const EditUserForm = ({ user }: EditUserFormProps) => {
   };
 
   const options = Object.values(ROLES).map((role) => (
-    <option key={role} value={role}>
+    <option key={role} value={role} className="bg-surface-2 text-ink-100">
       {role}
     </option>
   ));
@@ -86,99 +96,113 @@ const EditUserForm = ({ user }: EditUserFormProps) => {
     ? [roles.length, validUsername, validPassword].every(Boolean) && !isLoading
     : [roles.length, validUsername].every(Boolean) && !isLoading;
 
-  const errClass = isError || isDelError ? "errmsg" : "offscreen";
-  const validUserClass = !validUsername ? "form__input--incomplete" : "";
-  const validPwdClass =
-    password && !validPassword ? "form__input--incomplete" : "";
-  const validRolesClass = !roles.length ? "form__input--incomplete" : "";
-
   const errContent = getErrorMessage(error) || getErrorMessage(delerror);
+  const showError = (isError || isDelError) && errContent;
 
   return (
-    <>
-      <p className={errClass}>{errContent}</p>
-
-      <form className="form" onSubmit={(e) => e.preventDefault()}>
-        <div className="form__title-row">
-          <h2>Edit User</h2>
-          <div className="form__action-buttons">
-            <button
-              type="button"
-              className="icon-button"
-              title="Save"
+    <section>
+      <PageHeader
+        title="Edit User"
+        subtitle="Update credentials, roles, and account status"
+        actions={
+          <>
+            <IconButton
+              tone="primary"
+              label="Save"
               onClick={onSaveUserClicked}
               disabled={!canSave}
             >
               <FontAwesomeIcon icon={faSave} />
-            </button>
-            <button
-              type="button"
-              className="icon-button"
-              title="Delete"
+            </IconButton>
+            <IconButton
+              tone="danger"
+              label="Delete"
               onClick={onDeleteUserClicked}
             >
               <FontAwesomeIcon icon={faTrashCan} />
-            </button>
-          </div>
+            </IconButton>
+          </>
+        }
+      />
+
+      {showError && (
+        <div className="mb-5">
+          <Alert tone="danger">{errContent}</Alert>
         </div>
+      )}
 
-        <label className="form__label" htmlFor="username">
-          Username: <span className="nowrap">[3-20 letters]</span>
-        </label>
-        <input
-          className={`form__input ${validUserClass}`}
-          id="username"
-          name="username"
-          type="text"
-          autoComplete="off"
-          value={username}
-          onChange={onUsernameChanged}
-        />
+      <Card>
+        <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+          <div>
+            <Label htmlFor="username" hint="[3-20 letters]">
+              Username
+            </Label>
+            <Input
+              id="username"
+              name="username"
+              type="text"
+              autoComplete="off"
+              value={username}
+              onChange={onUsernameChanged}
+              invalid={!validUsername}
+            />
+          </div>
 
-        <label className="form__label" htmlFor="password">
-          Password: <span className="nowrap">[empty = no change]</span>{" "}
-          <span className="nowrap">[4-12 chars incl. !@#$%]</span>
-        </label>
-        <input
-          className={`form__input ${validPwdClass}`}
-          id="password"
-          name="password"
-          type="password"
-          value={password}
-          onChange={onPasswordChanged}
-        />
+          <div>
+            <Label
+              htmlFor="password"
+              hint="[empty = no change · 4-12 chars incl. !@#$%]"
+            >
+              Password
+            </Label>
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              value={password}
+              onChange={onPasswordChanged}
+              invalid={Boolean(password) && !validPassword}
+            />
+          </div>
 
-        <label
-          className="form__label form__checkbox-container"
-          htmlFor="user-active"
-        >
-          ACTIVE:
-          <input
-            className="form__checkbox"
-            id="user-active"
-            name="user-active"
-            type="checkbox"
-            checked={active}
-            onChange={onActiveChanged}
-          />
-        </label>
+          <div className="grid sm:grid-cols-2 gap-6">
+            <div>
+              <Label htmlFor="roles">Assigned roles</Label>
+              <Select
+                id="roles"
+                name="roles"
+                multiple
+                size={3}
+                value={roles}
+                onChange={onRolesChanged}
+                invalid={!roles.length}
+              >
+                {options}
+              </Select>
+              <p className="mt-2 text-xs text-ink-500">
+                Hold Ctrl / ⌘ to select multiple.
+              </p>
+            </div>
 
-        <label className="form__label" htmlFor="roles">
-          ASSIGNED ROLES:
-        </label>
-        <select
-          id="roles"
-          name="roles"
-          className={`form__select ${validRolesClass}`}
-          multiple
-          size={3}
-          value={roles}
-          onChange={onRolesChanged}
-        >
-          {options}
-        </select>
-      </form>
-    </>
+            <div>
+              <Label>Status</Label>
+              <div className="rounded-xl border border-white/10 bg-white/5 p-4">
+                <Checkbox
+                  id="user-active"
+                  name="user-active"
+                  checked={active}
+                  onChange={onActiveChanged}
+                  label="Active account"
+                />
+                <p className="mt-2 text-xs text-ink-500">
+                  Inactive users cannot log in.
+                </p>
+              </div>
+            </div>
+          </div>
+        </form>
+      </Card>
+    </section>
   );
 };
 

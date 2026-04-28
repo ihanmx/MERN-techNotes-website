@@ -7,6 +7,15 @@ import { faSave } from "@fortawesome/free-solid-svg-icons";
 import { useAddNewUserMutation } from "./usersApiSlice";
 import { ROLES } from "../../config/roles";
 import type { Role } from "../../config/roles";
+import {
+  Alert,
+  Card,
+  IconButton,
+  Input,
+  Label,
+  PageHeader,
+  Select,
+} from "../../ui";
 
 const USER_REGEX = /^[A-z]{3,20}$/;
 const PWD_REGEX = /^[A-z0-9!@#$%]{4,12}$/;
@@ -67,71 +76,90 @@ const NewUserForm = () => {
   };
 
   const options = Object.values(ROLES).map((role) => (
-    <option key={role} value={role}>
+    <option key={role} value={role} className="bg-surface-2 text-ink-100">
       {role}
     </option>
   ));
 
-  const errClass = isError ? "errmsg" : "offscreen";
-  const validUserClass = !validUsername ? "form__input--incomplete" : "";
-  const validPwdClass = !validPassword ? "form__input--incomplete" : "";
-  const validRolesClass = !roles.length ? "form__input--incomplete" : "";
-
   return (
-    <>
-      <p className={errClass}>{getErrorMessage(error)}</p>
+    <section>
+      <PageHeader
+        title="New User"
+        subtitle="Provision a fresh staff account"
+        actions={
+          <IconButton
+            tone="primary"
+            label="Save"
+            disabled={!canSave}
+            onClick={() => {
+              const form = document.getElementById(
+                "new-user-form",
+              ) as HTMLFormElement | null;
+              form?.requestSubmit();
+            }}
+          >
+            <FontAwesomeIcon icon={faSave} />
+          </IconButton>
+        }
+      />
 
-      <form className="form" onSubmit={onSaveUserClicked}>
-        <div className="form__title-row">
-          <h2>New User</h2>
-          <div className="form__action-buttons">
-            <button className="icon-button" title="Save" disabled={!canSave}>
-              <FontAwesomeIcon icon={faSave} />
-            </button>
-          </div>
+      {isError && (
+        <div className="mb-5">
+          <Alert tone="danger">{getErrorMessage(error)}</Alert>
         </div>
+      )}
 
-        <label className="form__label" htmlFor="username">
-          Username: <span className="nowrap">[3-20 letters]</span>
-        </label>
-        <input
-          className={`form__input ${validUserClass}`}
-          id="username"
-          name="username"
-          type="text"
-          autoComplete="off"
-          value={username}
-          onChange={onUsernameChanged}
-        />
+      <Card>
+        <form id="new-user-form" className="space-y-5" onSubmit={onSaveUserClicked}>
+          <div>
+            <Label htmlFor="username" hint="[3-20 letters]">
+              Username
+            </Label>
+            <Input
+              id="username"
+              name="username"
+              type="text"
+              autoComplete="off"
+              value={username}
+              onChange={onUsernameChanged}
+              invalid={!validUsername}
+            />
+          </div>
 
-        <label className="form__label" htmlFor="password">
-          Password: <span className="nowrap">[4-12 chars incl. !@#$%]</span>
-        </label>
-        <input
-          className={`form__input ${validPwdClass}`}
-          id="password"
-          name="password"
-          type="password"
-          value={password}
-          onChange={onPasswordChanged}
-        />
+          <div>
+            <Label htmlFor="password" hint="[4-12 chars incl. !@#$%]">
+              Password
+            </Label>
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              value={password}
+              onChange={onPasswordChanged}
+              invalid={!validPassword}
+            />
+          </div>
 
-        <label className="form__label" htmlFor="roles">
-          ASSIGNED ROLES:
-        </label>
-        <select
-          id="roles"
-          name="roles"
-          className={`form__select ${validRolesClass}`}
-          multiple
-          size={3}
-          value={roles}
-          onChange={onRolesChanged}
-        >
-          {options}
-        </select>
-      </form>
-    </>
+          <div className="max-w-sm">
+            <Label htmlFor="roles">Assigned roles</Label>
+            <Select
+              id="roles"
+              name="roles"
+              multiple
+              size={3}
+              value={roles}
+              onChange={onRolesChanged}
+              invalid={!roles.length}
+            >
+              {options}
+            </Select>
+            <p className="mt-2 text-xs text-ink-500">
+              Hold Ctrl / ⌘ to select multiple.
+            </p>
+          </div>
+        </form>
+      </Card>
+    </section>
   );
 };
 

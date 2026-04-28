@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
 import { useGetNotesQuery } from "./notesApiSlice";
+import { Badge, IconButton } from "../../ui";
 
 interface NoteProps {
   noteId: string;
@@ -28,26 +29,34 @@ const Note = ({ noteId }: NoteProps) => {
   const handleEdit = () => navigate(`/dash/notes/${noteId}`);
 
   return (
-    <tr className="table__row">
-      <td className="table__cell note__status">
+    <tr className="hover:bg-white/5 transition-colors">
+      <td className="px-4 py-3">
         {note.completed ? (
-          <span className="note__status--completed">Completed</span>
+          <Badge tone="success" dot>
+            Completed
+          </Badge>
         ) : (
-          <span className="note__status--open">Open</span>
+          <Badge tone="danger" dot>
+            Open
+          </Badge>
         )}
       </td>
-      <td className="table__cell note__created">
+      <td className="px-4 py-3 hidden md:table-cell text-ink-300 font-mono text-xs">
         {formatDate(note.createdAt)}
       </td>
-      <td className="table__cell note__updated">
+      <td className="px-4 py-3 hidden md:table-cell text-ink-300 font-mono text-xs">
         {formatDate(note.updatedAt)}
       </td>
-      <td className="table__cell note__title">{note.title}</td>
-      <td className="table__cell note__username">{note.username}</td>
-      <td className="table__cell">
-        <button className="icon-button table__button" onClick={handleEdit}>
+      <td className="px-4 py-3 font-semibold text-ink-100 max-w-md truncate">
+        {note.title}
+      </td>
+      <td className="px-4 py-3 hidden md:table-cell text-ink-300">
+        {note.username}
+      </td>
+      <td className="px-4 py-3 text-right">
+        <IconButton tone="primary" label="Edit note" onClick={handleEdit}>
           <FontAwesomeIcon icon={faPenToSquare} />
-        </button>
+        </IconButton>
       </td>
     </tr>
   );

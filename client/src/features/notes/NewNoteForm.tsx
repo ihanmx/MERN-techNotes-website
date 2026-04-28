@@ -5,6 +5,16 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSave } from "@fortawesome/free-solid-svg-icons";
 import { useAddNewNoteMutation } from "./notesApiSlice";
 import type { IUser } from "../users/usersApiSlice";
+import {
+  Alert,
+  Card,
+  IconButton,
+  Input,
+  Label,
+  PageHeader,
+  Select,
+  Textarea,
+} from "../../ui";
 
 interface NewNoteFormProps {
   users: IUser[];
@@ -53,70 +63,81 @@ const NewNoteForm = ({ users }: NewNoteFormProps) => {
   };
 
   const options = users.map((user) => (
-    <option key={user.id} value={user.id}>
+    <option key={user.id} value={user.id} className="bg-surface-2 text-ink-100">
       {user.username}
     </option>
   ));
 
-  const errClass = isError ? "errmsg" : "offscreen";
-  const validTitleClass = !title ? "form__input--incomplete" : "";
-  const validTextClass = !text ? "form__input--incomplete" : "";
-
   return (
-    <>
-      <p className={errClass}>{getErrorMessage(error)}</p>
+    <section>
+      <PageHeader
+        title="New techNote"
+        subtitle="Open a fresh repair ticket"
+        actions={
+          <IconButton
+            tone="primary"
+            label="Save"
+            disabled={!canSave}
+            onClick={() => {
+              const form = document.getElementById(
+                "new-note-form",
+              ) as HTMLFormElement | null;
+              form?.requestSubmit();
+            }}
+          >
+            <FontAwesomeIcon icon={faSave} />
+          </IconButton>
+        }
+      />
 
-      <form className="form" onSubmit={onSaveNoteClicked}>
-        <div className="form__title-row">
-          <h2>New Note</h2>
-          <div className="form__action-buttons">
-            <button className="icon-button" title="Save" disabled={!canSave}>
-              <FontAwesomeIcon icon={faSave} />
-            </button>
-          </div>
+      {isError && (
+        <div className="mb-5">
+          <Alert tone="danger">{getErrorMessage(error)}</Alert>
         </div>
+      )}
 
-        <label className="form__label" htmlFor="title">
-          Title:
-        </label>
-        <input
-          className={`form__input ${validTitleClass}`}
-          id="title"
-          name="title"
-          type="text"
-          autoComplete="off"
-          value={title}
-          onChange={onTitleChanged}
-        />
+      <Card>
+        <form id="new-note-form" className="space-y-5" onSubmit={onSaveNoteClicked}>
+          <div>
+            <Label htmlFor="title">Title</Label>
+            <Input
+              id="title"
+              name="title"
+              type="text"
+              autoComplete="off"
+              value={title}
+              onChange={onTitleChanged}
+              invalid={!title}
+              placeholder="Short summary"
+            />
+          </div>
 
-        <label className="form__label" htmlFor="text">
-          Text:
-        </label>
-        <textarea
-          className={`form__input form__input--text ${validTextClass}`}
-          id="text"
-          name="text"
-          value={text}
-          onChange={onTextChanged}
-        />
+          <div>
+            <Label htmlFor="text">Text</Label>
+            <Textarea
+              id="text"
+              name="text"
+              value={text}
+              onChange={onTextChanged}
+              invalid={!text}
+              placeholder="Describe the issue or repair details..."
+            />
+          </div>
 
-        <label
-          className="form__label form__checkbox-container"
-          htmlFor="username"
-        >
-          ASSIGNED TO:
-        </label>
-        <select
-          id="username"
-          name="username"
-          className="form__select"
-          value={userId}
-          onChange={onUserIdChanged}
-        >
-          {options}
-        </select>
-      </form>
-    </>
+          <div className="max-w-sm">
+            <Label htmlFor="username">Assigned to</Label>
+            <Select
+              id="username"
+              name="username"
+              value={userId}
+              onChange={onUserIdChanged}
+            >
+              {options}
+            </Select>
+          </div>
+        </form>
+      </Card>
+    </section>
   );
 };
 

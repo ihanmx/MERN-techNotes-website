@@ -3,6 +3,7 @@ const allowedOrigins: string[] = [
   "https://www.dandrepairshop.com",
   "https://dandrepairshop.com",
   "http://localhost:5173",
+  "http://localhost:5174",
 ];
 
 export default allowedOrigins;

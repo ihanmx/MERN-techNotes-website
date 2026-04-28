@@ -1,6 +1,7 @@
 import { useGetNotesQuery } from "./notesApiSlice";
 import Note from "./Note";
 import useAuth from "../../hooks/useAuth";
+import { Alert, DataTable, PageHeader, Spinner, Badge } from "../../ui";
 
 const getErrorMessage = (err: unknown): string => {
   if (
@@ -31,8 +32,13 @@ const NotesList = () => {
 
   const { username, isManager, isAdmin } = useAuth();
 
-  if (isLoading) return <p>Loading...</p>;
-  if (isError) return <p className="errmsg">{getErrorMessage(error)}</p>;
+  if (isLoading)
+    return (
+      <div className="py-10 flex justify-center">
+        <Spinner size={32} label="Loading notes..." />
+      </div>
+    );
+  if (isError) return <Alert tone="danger">{getErrorMessage(error)}</Alert>;
   if (!isSuccess) return null;
 
   const { ids, entities } = notes;
@@ -46,38 +52,52 @@ const NotesList = () => {
     filteredIds.map((noteId) => <Note key={noteId} noteId={String(noteId)} />)
   ) : (
     <tr>
-      <td colSpan={6} style={{ textAlign: "center", padding: "1rem" }}>
+      <td
+        colSpan={6}
+        className="px-4 py-10 text-center text-ink-400 italic"
+      >
         No notes assigned to you.
       </td>
     </tr>
   );
 
   return (
-    <table className="table table--notes">
-      <thead className="table__thead">
-        <tr>
-          <th scope="col" className="table__th note__status">
-            Status
-          </th>
-          <th scope="col" className="table__th note__created">
-            Created
-          </th>
-          <th scope="col" className="table__th note__updated">
-            Updated
-          </th>
-          <th scope="col" className="table__th note__title">
-            Title
-          </th>
-          <th scope="col" className="table__th note__username">
-            Owner
-          </th>
-          <th scope="col" className="table__th note__edit">
-            Edit
-          </th>
-        </tr>
-      </thead>
-      <tbody>{tableContent}</tbody>
-    </table>
+    <section>
+      <PageHeader
+        title="techNotes"
+        subtitle={
+          isAdmin || isManager
+            ? "All repair tickets across the team"
+            : "Tickets assigned to you"
+        }
+        actions={
+          <Badge tone="primary" dot>
+            {filteredIds.length} total
+          </Badge>
+        }
+      />
+
+      <DataTable
+        head={
+          <tr>
+            <th scope="col" className="px-4 py-3">Status</th>
+            <th scope="col" className="px-4 py-3 hidden md:table-cell">
+              Created
+            </th>
+            <th scope="col" className="px-4 py-3 hidden md:table-cell">
+              Updated
+            </th>
+            <th scope="col" className="px-4 py-3">Title</th>
+            <th scope="col" className="px-4 py-3 hidden md:table-cell">
+              Owner
+            </th>
+            <th scope="col" className="px-4 py-3 text-right">Edit</th>
+          </tr>
+        }
+      >
+        {tableContent}
+      </DataTable>
+    </section>
   );
 };
 
