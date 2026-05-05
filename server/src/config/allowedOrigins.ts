@@ -5,6 +5,7 @@ const allowedOrigins: string[] = [
   "http://localhost:5173",
   "http://localhost:5174",
   "https://technoteshanan.netlify.app",
+  "http://localhost:8080",
 ];
 
 export default allowedOrigins;
