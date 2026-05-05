@@ -136,6 +136,100 @@ npm run build && npm run preview
 
 ---
 
+## Running with Docker
+
+The whole stack — frontend (nginx), backend (Node), and MongoDB — can be brought up with a single command using Docker Compose. No local Node, no local Mongo, no Atlas needed.
+
+### Prerequisites
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop) (Windows/Mac) or Docker Engine (Linux)
+
+### 1. Project-root `.env`
+
+Compose substitutes secrets from a `.env` file at the project root (next to `docker-compose.yml`). Create it:
+
+```env
+ACCESS_TOKEN_SECRET=<random-long-string>
+REFRESH_TOKEN_SECRET=<another-random-long-string>
+```
+
+> ⚠️ This file is gitignored. Each environment generates its own secrets.
+
+### 2. Bring up the stack
+
+From the project root:
+
+```bash
+docker compose up --build
+```
+
+What this does:
+- Builds the `api` image from [server/Dockerfile](server/Dockerfile) (multi-stage: TypeScript compile → tiny runtime).
+- Builds the `web` image from [client/Dockerfile](client/Dockerfile) (Vite build → nginx serves the static output).
+- Pulls `mongo:7` from Docker Hub (first run only).
+- Starts all three containers on a private Docker network where they reach each other by service name (`mongo`, `api`, `web`).
+
+Once you see `Connected to MongoDB` and `Server is running on port 5000`, the stack is up.
+
+### 3. Access the app
+
+| URL                          | Service |
+| ---------------------------- | ------- |
+| http://localhost:8080        | Frontend (nginx) |
+| http://localhost:5000        | Backend API |
+| mongodb://localhost:27017    | Local Mongo (for Compass / mongosh) |
+
+### 4. Seed an admin user (local Mongo is empty)
+
+User-creation endpoints are role-protected, so you can't register the first admin via the UI. Run the seed script:
+
+```bash
+docker compose exec api node dist/scripts/seedAdmin.js admin yourPassword123
+```
+
+Then log in at http://localhost:8080 with those credentials.
+
+### 5. Useful Compose commands
+
+```bash
+docker compose up                  # start (foreground, logs visible)
+docker compose up -d               # start detached (background)
+docker compose up -d --build api   # rebuild only one service after a code change
+docker compose stop                # stop without deleting containers
+docker compose down                # stop AND delete containers (volumes survive)
+docker compose down -v             # ⚠️ delete containers AND volumes (data wipe)
+docker compose logs -f api         # tail one service's logs
+docker compose ps                  # list running services
+docker compose exec api sh         # shell into a running container
+```
+
+### Architecture
+
+```
+┌──────────────────────────────────────────┐
+│ Docker Compose private network            │
+│                                          │
+│  ┌──────────┐    ┌─────────┐   ┌──────┐  │
+│  │  web     │    │  api    │   │ mongo│  │
+│  │ (nginx)  │    │ (Node)  │   │      │  │
+│  │ :80      │    │ :5000   │   │:27017│  │
+│  └─────▲────┘    └────▲────┘   └───▲──┘  │
+│        │              │ mongodb://mongo  │
+└────────┼──────────────┼──────────────────┘
+         │              │
+   port 8080       port 5000
+         │              │
+   ┌─────┴──────────────┴─────┐
+   │   Browser / Postman      │
+   └──────────────────────────┘
+```
+
+### Why ports differ
+
+The frontend container internally listens on **port 80** (nginx default) but is mapped to **8080** on the host to avoid clashing with anything else on port 80. The backend listens on **5000** internally and externally. Inter-container traffic uses service hostnames (`mongo`, `api`); browser → container traffic uses the host port mappings.
+
+---
+
 ## API Overview
 
 Base URL: `http://localhost:5000`
@@ -186,6 +280,8 @@ Defined in [client/src/config/roles.ts](client/src/config/roles.ts) and enforced
 - `npm run dev` — `tsx watch src/server.ts`
 - `npm run build` — `tsc`
 - `npm start` — `node dist/server.js`
+- `npm run seed:admin -- <username> <password>` — seed an admin user (requires `npm run build` first; reads `DATABASE_URI` from `.env`)
+- `npm run seed:admin:dev -- <username> <password>` — same, but runs the TypeScript directly via `tsx` (no build step)
 
 **Client**
 - `npm run dev` — Vite dev server
