@@ -4,6 +4,7 @@ const allowedOrigins: string[] = [
   "https://dandrepairshop.com",
   "http://localhost:5173",
   "http://localhost:5174",
+  "https://technoteshanan.netlify.app/",
 ];
 
 export default allowedOrigins;
