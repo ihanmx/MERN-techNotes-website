@@ -36,7 +36,7 @@ const Public = () => (
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight">
             Welcome to{" "}
             <span className="bg-linear-to-r from-primary-400 to-secondary-400 bg-clip-text text-transparent whitespace-nowrap">
-              Dan D. Repairs
+              Hanan Repairs
             </span>
           </h1>
           <p className="mt-5 text-lg text-ink-300 max-w-xl">
@@ -85,7 +85,7 @@ const Public = () => (
                 className="text-secondary-400 mt-1"
               />
               <div>
-                <div className="font-semibold text-ink-100">Dan D. Repairs</div>
+                <div className="font-semibold text-ink-100">Hanan Repairs</div>
                 <div className="text-sm text-ink-400">
                   555 Foo Drive
                   <br />
