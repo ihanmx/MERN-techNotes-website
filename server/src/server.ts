@@ -5,7 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import cookieParser from "cookie-parser";
 import cors from "cors";
-
+import helmet from "helmet";
 import connectDB from "./config/dbConnect.js";
 import corsOptions from "./config/corsOptions.js";
 import { logger, logEvents } from "./middlewares/logger.js";
@@ -21,7 +21,7 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = Number(process.env.PORT) || 5000;
-
+app.use(helmet({ contentSecurityPolicy: false }));
 connectDB();
 
 app.use(logger);
