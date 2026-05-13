@@ -97,3 +97,24 @@ jobs:
     steps:
       - name: Trigger Render deploy
         run: curl -fsSL -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
+
+  deploy-vps:
+    name: Deploy server to VPS
+    needs: server
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -e
+            cd ~/MERN-techNotes-website
+            git pull origin main
+            cd server
+            npm ci
+            npm run build
+            pm2 reload technote-api

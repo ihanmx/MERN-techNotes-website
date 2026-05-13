@@ -1,3 +1,7 @@
+![CI](https://github.com/ihanmx/MERN-techNotes-website/actions/workflows/ci.yml/badge.svg)
+
+[image]
+
 # techNotes — MERN Stack Notes Manager
 
 A full-stack ticket / notes management application built with **MongoDB, Express, React, and Node** (MERN), written end-to-end in **TypeScript**. It replaces a legacy sticky-note system with a role-based web app where employees, managers, and admins can create, assign, and resolve customer tickets.
@@ -21,6 +25,7 @@ A full-stack ticket / notes management application built with **MongoDB, Express
 ## Tech Stack
 
 **Client** ([client/](client/))
+
 - React 19 + TypeScript
 - Vite
 - **Redux Toolkit** — global store, `createSlice` for auth state
@@ -30,6 +35,7 @@ A full-stack ticket / notes management application built with **MongoDB, Express
 - jwt-decode, FontAwesome, react-spinners
 
 **Server** ([server/](server/))
+
 - Node.js + Express 5 (TypeScript, ESM)
 - MongoDB + Mongoose
 - `@typegoose/auto-increment` for ticket numbers
@@ -164,6 +170,7 @@ docker compose up --build
 ```
 
 What this does:
+
 - Builds the `api` image from [server/Dockerfile](server/Dockerfile) (multi-stage: TypeScript compile → tiny runtime).
 - Builds the `web` image from [client/Dockerfile](client/Dockerfile) (Vite build → nginx serves the static output).
 - Pulls `mongo:7` from Docker Hub (first run only).
@@ -173,11 +180,11 @@ Once you see `Connected to MongoDB` and `Server is running on port 5000`, the st
 
 ### 3. Access the app
 
-| URL                          | Service |
-| ---------------------------- | ------- |
-| http://localhost:8080        | Frontend (nginx) |
-| http://localhost:5000        | Backend API |
-| mongodb://localhost:27017    | Local Mongo (for Compass / mongosh) |
+| URL                       | Service                             |
+| ------------------------- | ----------------------------------- |
+| http://localhost:8080     | Frontend (nginx)                    |
+| http://localhost:5000     | Backend API                         |
+| mongodb://localhost:27017 | Local Mongo (for Compass / mongosh) |
 
 ### 4. Seed an admin user (local Mongo is empty)
 
@@ -234,19 +241,19 @@ The frontend container internally listens on **port 80** (nginx default) but is 
 
 Base URL: `http://localhost:5000`
 
-| Method | Endpoint        | Auth          | Description                                  |
-|--------|-----------------|---------------|----------------------------------------------|
+| Method | Endpoint        | Auth                  | Description                                        |
+| ------ | --------------- | --------------------- | -------------------------------------------------- |
 | POST   | `/auth`         | public (rate-limited) | Login — returns access token + sets refresh cookie |
-| GET    | `/auth/refresh` | refresh cookie | Issues a new access token                   |
-| POST   | `/auth/logout`  | public        | Clears refresh cookie                        |
-| GET    | `/users`        | any role      | List all users                               |
-| POST   | `/users`        | Manager/Admin | Create a user                                |
-| PATCH  | `/users`        | Manager/Admin | Update a user (role, active flag, password)  |
-| DELETE | `/users`        | Manager/Admin | Delete a user                                |
-| GET    | `/notes`        | any role      | List all notes (employees scoped to own)     |
-| POST   | `/notes`        | any role      | Create a note                                |
-| PATCH  | `/notes`        | any role *    | Update a note (* employees only their own)   |
-| DELETE | `/notes`        | Manager/Admin | Delete a note                                |
+| GET    | `/auth/refresh` | refresh cookie        | Issues a new access token                          |
+| POST   | `/auth/logout`  | public                | Clears refresh cookie                              |
+| GET    | `/users`        | any role              | List all users                                     |
+| POST   | `/users`        | Manager/Admin         | Create a user                                      |
+| PATCH  | `/users`        | Manager/Admin         | Update a user (role, active flag, password)        |
+| DELETE | `/users`        | Manager/Admin         | Delete a user                                      |
+| GET    | `/notes`        | any role              | List all notes (employees scoped to own)           |
+| POST   | `/notes`        | any role              | Create a note                                      |
+| PATCH  | `/notes`        | any role \*           | Update a note (\* employees only their own)        |
+| DELETE | `/notes`        | Manager/Admin         | Delete a note                                      |
 
 Access tokens are sent as `Authorization: Bearer <token>`; refresh tokens live in an httpOnly cookie.
 
@@ -255,9 +262,11 @@ Access tokens are sent as `Authorization: Bearer <token>`; refresh tokens live i
 ## Data Models
 
 **User** — [server/src/models/User.ts](server/src/models/User.ts)
+
 - `username` (unique, lowercased), `password` (bcrypt-hashed), `roles` (string[]), `active` (boolean)
 
 **Note** — [server/src/models/Note.ts](server/src/models/Note.ts)
+
 - `user` (ref User), `title`, `text`, `completed`, `ticket` (auto-increment from 500), timestamps
 
 ---
@@ -267,7 +276,7 @@ Access tokens are sent as `Authorization: Bearer <token>`; refresh tokens live i
 Defined in [client/src/config/roles.ts](client/src/config/roles.ts) and enforced server-side via [requireRoles](server/src/middlewares/requireRoles.ts).
 
 | Role     | View notes | Edit notes | Delete notes | User settings |
-|----------|------------|------------|--------------|---------------|
+| -------- | ---------- | ---------- | ------------ | ------------- |
 | Employee | own only   | own only   | —            | —             |
 | Manager  | all        | all        | yes          | yes           |
 | Admin    | all        | all        | yes          | yes           |
@@ -277,6 +286,7 @@ Defined in [client/src/config/roles.ts](client/src/config/roles.ts) and enforced
 ## Scripts
 
 **Server**
+
 - `npm run dev` — `tsx watch src/server.ts`
 - `npm run build` — `tsc`
 - `npm start` — `node dist/server.js`
@@ -284,6 +294,7 @@ Defined in [client/src/config/roles.ts](client/src/config/roles.ts) and enforced
 - `npm run seed:admin:dev -- <username> <password>` — same, but runs the TypeScript directly via `tsx` (no build step)
 
 **Client**
+
 - `npm run dev` — Vite dev server
 - `npm run build` — type-check + production bundle
 - `npm run lint` — ESLint
