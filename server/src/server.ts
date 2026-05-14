@@ -1,3 +1,4 @@
+import "./instrument.js";
 import "dotenv/config";
 import express from "express";
 import mongoose from "mongoose";
@@ -10,7 +11,7 @@ import connectDB from "./config/dbConnect.js";
 import corsOptions from "./config/corsOptions.js";
 import { logger, logEvents } from "./middlewares/logger.js";
 import errorHandler from "./middlewares/errorHandler.js";
-
+import * as Sentry from "@sentry/node";
 import rootRoute from "./routes/root.js";
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
@@ -47,6 +48,7 @@ app.all("/{*path}", (req, res) => {
   }
 });
 
+Sentry.setupExpressErrorHandler(app);
 app.use(errorHandler);
 
 mongoose.connection.once("open", () => {

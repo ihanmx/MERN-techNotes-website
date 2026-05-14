@@ -37,7 +37,7 @@ COPY views ./views
 
 EXPOSE 5000
 
-CMD ["node", "dist/server.js"]
+CMD ["npm", "start"]
 
 
 # Stage 1 has TypeScript, dev deps, source code → ~400 MB
