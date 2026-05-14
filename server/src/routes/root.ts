@@ -12,9 +12,6 @@ router.get("/", (_req, res) => {
   res.sendFile(path.join(__dirname, "..", "..", "views", "index.html"));
 });
 
-router.get("/debug-sentry", (_req, _res) => {
-  throw new Error("My first Sentry error!");
-});
 router.get("/health", (_req, res) => {
   const dbState = mongoose.connection.readyState;
   // mongoose readyState: 0=disconnected, 1=connected, 2=connecting, 3=disconnecting
