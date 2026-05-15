@@ -476,13 +476,6 @@ Defined in [client/src/config/roles.ts](client/src/config/roles.ts) and enforced
 
 ---
 
-## 📚 Further reading
-
-- [docs/DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md) — full Phase 1-5 deployment walkthrough with every command explained
-- [docs/DOCKER_GUIDE.md](docs/DOCKER_GUIDE.md) — focused Docker reference (Dockerfile breakdown, daily compose routine, core commands)
-
----
-
 ## License
 
 ISC
