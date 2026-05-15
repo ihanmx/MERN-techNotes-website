@@ -1,14 +1,29 @@
 ![CI](https://github.com/ihanmx/MERN-techNotes-website/actions/workflows/ci.yml/badge.svg)
 
-[image]
-
 # techNotes — MERN Stack Notes Manager
 
 A full-stack ticket / notes management application built with **MongoDB, Express, React, and Node** (MERN), written end-to-end in **TypeScript**. It replaces a legacy sticky-note system with a role-based web app where employees, managers, and admins can create, assign, and resolve customer tickets.
 
+The application is also a hands-on exploration of modern deployment — it ships through **three different production pipelines** (PaaS, Docker, self-hosted VPS), wired together by **GitHub Actions CI/CD**, and polished with production-grade observability, security, and monitoring.
+
 ---
 
-## Features
+## 🚀 Live deployments
+
+| Layer     | URL                                                   | Hosted on        |
+| --------- | ----------------------------------------------------- | ---------------- |
+| Frontend  | https://technoteshanan.netlify.app                    | Netlify          |
+| Backend   | https://mern-technotes-website.onrender.com           | Render           |
+| Database  | (Atlas-managed)                                       | MongoDB Atlas    |
+| Mirror    | http://178.105.138.179                                | Hetzner VPS      |
+
+Every push to `main` automatically lints, builds, and deploys to all three production targets in parallel.
+
+---
+
+## ✨ Highlights
+
+### Application
 
 - Public landing page with company contact info
 - Employee login with **JWT access tokens** + httpOnly **refresh-token cookie** (persistent auth, weekly re-login)
@@ -16,9 +31,76 @@ A full-stack ticket / notes management application built with **MongoDB, Express
 - Notes / tickets with auto-incremented ticket numbers, OPEN / COMPLETED status, and assignment to a specific user
 - Employees see and edit only their own notes; Managers and Admins see, edit, and delete all notes
 - User management (create, edit, deactivate) restricted to Managers and Admins
-- Login rate-limiting, CORS allow-list, request logging, centralized error handling
 - Responsive UI styled with Tailwind CSS — desktop-first, works on mobile
-- Centralized client state with **Redux Toolkit** and data fetching / caching via **RTK Query** (normalized cache, automatic re-fetching, optimistic updates, prefetching for snappy navigation)
+- Centralized client state with **Redux Toolkit** and data fetching / caching via **RTK Query** (normalized cache, automatic re-fetching, optimistic updates, prefetching)
+
+### DevOps & production posture
+
+- **Multi-target CI/CD** via GitHub Actions: lint → build → parallel deploy to Netlify, Render, and a self-hosted Hetzner VPS via SSH
+- **Multi-stage Docker images** for backend (Node) and frontend (nginx-served Vite build), plus a `docker-compose.yml` that orchestrates the full stack with a persistent MongoDB volume
+- **nginx as a reverse proxy** on the VPS, fronting `pm2`-managed Node with zero-downtime reloads and systemd boot persistence
+- **Branch protection on `main`** — no PR merges without green CI; every PR gets a **Netlify deploy preview** URL
+- **Helmet** security headers (A-grade on securityheaders.com)
+- **Secure cross-origin cookies** — `httpOnly` + `secure` + `sameSite: "none"` for Netlify ↔ Render auth
+- **Sentry** for production error tracking with full stack traces and request context
+- **Structured JSON logging** with `pino` + `pino-http`, redacting sensitive fields, pino-pretty in dev
+- **`/health` endpoint** + **UptimeRobot** monitoring (also keeps Render free tier from sleeping)
+- **Dedicated SSH deploy key** stored as a GitHub secret — principle of least privilege for CI deploys
+
+---
+
+## 🏗 Architecture
+
+### Production pipeline
+
+```
+                        ┌─────────────────┐
+                        │  GitHub repo    │
+                        │  push to main   │
+                        └────────┬────────┘
+                                 │
+                        ┌────────▼────────┐
+                        │  CI: lint+build │
+                        └────────┬────────┘
+                                 │
+              ┌──────────────────┼──────────────────┐
+              │                  │                  │
+              ▼                  ▼                  ▼
+   ┌────────────────┐ ┌────────────────┐ ┌────────────────┐
+   │   Netlify CLI  │ │  Render deploy │ │ appleboy/ssh   │
+   │   netlify CLI  │ │      hook      │ │   on VPS       │
+   └────────┬───────┘ └────────┬───────┘ └────────┬───────┘
+            │                  │                  │
+            ▼                  ▼                  ▼
+       Netlify CDN         Render Web         Hetzner VPS
+       (frontend)          Service             (nginx +
+                           (backend)           pm2 + Node)
+                                                 │
+                                                 │ (also)
+                                                 ▼
+                                          MongoDB Atlas
+```
+
+### Runtime (Phase-1 production)
+
+```
+        ┌───────────────┐
+Browser │  Netlify CDN  │  ◄── static React build (Vite dist/)
+        │   (frontend)  │
+        └──────┬────────┘
+               │ fetch /auth, /users, /notes
+               │ Authorization: Bearer + refresh cookie
+               ▼
+        ┌───────────────┐
+        │     Render    │  ◄── Node + Express + Mongoose
+        │   (backend)   │       Helmet • pino • Sentry • /health
+        └──────┬────────┘
+               │ mongodb+srv://
+               ▼
+        ┌───────────────┐
+        │ MongoDB Atlas │  ◄── managed M0 cluster
+        └───────────────┘
+```
 
 ---
 
@@ -37,11 +119,22 @@ A full-stack ticket / notes management application built with **MongoDB, Express
 **Server** ([server/](server/))
 
 - Node.js + Express 5 (TypeScript, ESM)
-- MongoDB + Mongoose
-- `@typegoose/auto-increment` for ticket numbers
+- MongoDB + Mongoose, `@typegoose/auto-increment` for ticket numbers
 - jsonwebtoken, bcrypt, cookie-parser
 - cors, express-rate-limit, dotenv
-- `tsx` for dev, `tsc` for production build
+- **helmet** — HTTP security headers
+- **pino + pino-http + pino-pretty** — structured JSON logging
+- **@sentry/node** — error tracking
+- `tsx` for dev (with `--import` Sentry pre-instrumentation), `tsc` for production build
+
+**Infrastructure** ([Dockerfile](server/Dockerfile), [docker-compose.yml](docker-compose.yml), [.github/workflows/ci.yml](.github/workflows/ci.yml))
+
+- Docker multi-stage builds (Node runtime ~150 MB)
+- nginx (static-serve in containerized frontend; reverse-proxy on VPS)
+- docker-compose (api + web + mongo with persistent volume)
+- GitHub Actions CI/CD (lint, build, Netlify CLI, Render deploy hook, `appleboy/ssh-action`)
+- pm2 process management on the VPS
+- UptimeRobot for external monitoring
 
 ---
 
@@ -49,7 +142,14 @@ A full-stack ticket / notes management application built with **MongoDB, Express
 
 ```
 MERN-Technote/
+├── .github/
+│   └── workflows/
+│       └── ci.yml             # lint + build + 3-target deploy
 ├── client/                    # React + Vite frontend
+│   ├── public/
+│   │   └── _redirects         # Netlify SPA fallback
+│   ├── Dockerfile             # Vite build → nginx serve
+│   ├── nginx.conf             # SPA-friendly nginx config
 │   └── src/
 │       ├── app/               # Redux store
 │       ├── components/        # Layouts, headers, public/welcome pages
@@ -59,39 +159,47 @@ MERN-Technote/
 │       │   └── users/         # UsersList, User, NewUserForm, EditUser
 │       ├── hooks/             # useAuth, useTitle, ...
 │       ├── config/            # roles
-│       └── ui/                # Reusable atoms / molecules (Button, Card, ...)
-└── server/                    # Express + Mongoose backend
-    └── src/
-        ├── config/            # dbConnect, corsOptions, allowedOrigins
-        ├── controllers/       # auth, user, note controllers
-        ├── middlewares/       # logger, errorHandler, verifyJWT, requireRoles, loginLimiter
-        ├── models/            # User, Note (Mongoose schemas)
-        ├── routes/            # auth, users, notes, root
-        └── server.ts          # Entry point
+│       └── ui/                # Reusable atoms / molecules
+├── server/                    # Express + Mongoose backend
+│   ├── Dockerfile             # multi-stage: build → tiny runtime
+│   └── src/
+│       ├── config/            # dbConnect, corsOptions, allowedOrigins
+│       ├── controllers/       # auth, user, note controllers
+│       ├── lib/               # logger (pino)
+│       ├── middlewares/       # errorHandler, verifyJWT, requireRoles, loginLimiter
+│       ├── models/            # User, Note (Mongoose schemas)
+│       ├── routes/            # auth, users, notes, root (with /health)
+│       ├── scripts/           # seedAdmin
+│       ├── instrument.ts      # Sentry init (loaded via --import)
+│       └── server.ts          # Entry point
+├── docs/
+│   ├── DEPLOYMENT_GUIDE.md    # full 5-phase walkthrough
+│   └── DOCKER_GUIDE.md        # focused Docker reference
+└── docker-compose.yml         # api + web + mongo
 ```
 
 ---
 
-## Getting Started
+## Getting Started (local dev)
 
 ### Prerequisites
 
-- Node.js 20+
+- Node.js 22+
 - A MongoDB connection string (Atlas or local)
 
 ### 1. Clone & install
 
 ```bash
-git clone <repo-url>
-cd MERN-Technote
+git clone https://github.com/ihanmx/MERN-techNotes-website.git
+cd MERN-techNotes-website
 
 # server
 cd server
-npm install
+npm ci
 
 # client
 cd ../client
-npm install
+npm ci
 ```
 
 ### 2. Environment variables
@@ -104,12 +212,19 @@ PORT=5000
 DATABASE_URI=mongodb+srv://<user>:<pass>@<cluster>/<db>
 ACCESS_TOKEN_SECRET=<random-long-string>
 REFRESH_TOKEN_SECRET=<another-random-long-string>
+SENTRY_DSN=                          # optional in dev; leave empty to disable Sentry
 ```
 
 Generate secrets quickly:
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+```
+
+Create `client/.env.development`:
+
+```env
+VITE_API_URL=http://localhost:5000
 ```
 
 ### 3. Run in development
@@ -128,7 +243,7 @@ npm run dev
 
 The Vite dev origins `http://localhost:5173` and `http://localhost:5174` are pre-allowed in [server/src/config/allowedOrigins.ts](server/src/config/allowedOrigins.ts).
 
-### 4. Production build
+### 4. Production build (local)
 
 ```bash
 # server
@@ -144,7 +259,7 @@ npm run build && npm run preview
 
 ## Running with Docker
 
-The whole stack — frontend (nginx), backend (Node), and MongoDB — can be brought up with a single command using Docker Compose. No local Node, no local Mongo, no Atlas needed.
+The full stack — frontend (nginx), backend (Node), and MongoDB — runs with one command.
 
 ### Prerequisites
 
@@ -152,7 +267,7 @@ The whole stack — frontend (nginx), backend (Node), and MongoDB — can be bro
 
 ### 1. Project-root `.env`
 
-Compose substitutes secrets from a `.env` file at the project root (next to `docker-compose.yml`). Create it:
+Compose substitutes secrets from a root-level `.env` (next to `docker-compose.yml`):
 
 ```env
 ACCESS_TOKEN_SECRET=<random-long-string>
@@ -162,8 +277,6 @@ REFRESH_TOKEN_SECRET=<another-random-long-string>
 > ⚠️ This file is gitignored. Each environment generates its own secrets.
 
 ### 2. Bring up the stack
-
-From the project root:
 
 ```bash
 docker compose up --build
@@ -176,7 +289,7 @@ What this does:
 - Pulls `mongo:7` from Docker Hub (first run only).
 - Starts all three containers on a private Docker network where they reach each other by service name (`mongo`, `api`, `web`).
 
-Once you see `Connected to MongoDB` and `Server is running on port 5000`, the stack is up.
+Once you see `Connected to MongoDB` and `Server started`, the stack is up.
 
 ### 3. Access the app
 
@@ -184,9 +297,10 @@ Once you see `Connected to MongoDB` and `Server is running on port 5000`, the st
 | ------------------------- | ----------------------------------- |
 | http://localhost:8080     | Frontend (nginx)                    |
 | http://localhost:5000     | Backend API                         |
+| http://localhost:5000/health | Health check JSON                |
 | mongodb://localhost:27017 | Local Mongo (for Compass / mongosh) |
 
-### 4. Seed an admin user (local Mongo is empty)
+### 4. Seed an admin user
 
 User-creation endpoints are role-protected, so you can't register the first admin via the UI. Run the seed script:
 
@@ -194,7 +308,7 @@ User-creation endpoints are role-protected, so you can't register the first admi
 docker compose exec api node dist/scripts/seedAdmin.js admin yourPassword123
 ```
 
-Then log in at http://localhost:8080 with those credentials.
+Then log in at http://localhost:8080.
 
 ### 5. Useful Compose commands
 
@@ -210,7 +324,7 @@ docker compose ps                  # list running services
 docker compose exec api sh         # shell into a running container
 ```
 
-### Architecture
+### Compose architecture
 
 ```
 ┌──────────────────────────────────────────┐
@@ -231,18 +345,78 @@ docker compose exec api sh         # shell into a running container
    └──────────────────────────┘
 ```
 
-### Why ports differ
+---
 
-The frontend container internally listens on **port 80** (nginx default) but is mapped to **8080** on the host to avoid clashing with anything else on port 80. The backend listens on **5000** internally and externally. Inter-container traffic uses service hostnames (`mongo`, `api`); browser → container traffic uses the host port mappings.
+## ⚙️ Production & DevOps
+
+This project's production posture is documented in detail in [docs/DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md) (~2000 lines, 5 phases). Quick summary:
+
+### CI/CD pipeline
+
+[.github/workflows/ci.yml](.github/workflows/ci.yml) has five jobs:
+
+| Job | Trigger | What it does |
+| --- | ------- | ------------ |
+| `client` — lint + build | every push | ESLint + Vite build |
+| `server` — TypeScript build | every push | `tsc` compile |
+| `deploy-client` | push to `main` | Build with prod `VITE_API_URL`, deploy via Netlify CLI |
+| `deploy-server` | push to `main` | POST to Render deploy hook |
+| `deploy-vps` | push to `main` | SSH into VPS, `git pull` → `npm ci` → `npm run build` → `pm2 reload` |
+
+Plus: branch protection on `main` requires both build jobs to be green before merge; every PR gets an auto-generated Netlify deploy preview URL.
+
+### Multi-stage Docker
+
+- `server/Dockerfile`: Stage 1 compiles TypeScript with dev deps (~400 MB); Stage 2 copies only `dist/` into a fresh image with prod-only deps (~150 MB).
+- `client/Dockerfile`: Stage 1 runs `vite build`; Stage 2 is `nginx:alpine` serving the `dist/` folder with a SPA-fallback config.
+- `docker-compose.yml`: orchestrates both plus `mongo:7` with a named volume for persistence.
+
+### VPS hosting (Hetzner CX22 / Ubuntu 24.04)
+
+- Non-root user (`hanan`) with sudo; ufw firewall allowing only 22/80/443.
+- `pm2 start npm --name technote-api -- start` keeps Node alive, restarts on crash, persists across reboot.
+- nginx as reverse proxy: `:80` → `localhost:5000`. Node never directly faces the internet.
+- Dedicated CI deploy SSH key (`technote_deploy`) — separate from personal key.
+
+### Observability
+
+| Concern | Implementation |
+| ------- | -------------- |
+| Liveness | `/health` returns JSON with `status`, `uptime`, `db`, `timestamp` |
+| Uptime monitoring | UptimeRobot pings `/health` every 5 min |
+| Errors | Sentry captures uncaught errors with stack + request context |
+| Logs | pino structured JSON to stdout, pino-pretty for dev, `redact` for sensitive fields |
+| Access logs | pino-http auto-logs every request with method, URL, status, response time |
+
+### Security
+
+| Concern | Implementation |
+| ------- | -------------- |
+| HTTP headers | Helmet (~12 headers — CSP, HSTS, X-Frame-Options, etc.) |
+| Refresh-token cookie | `httpOnly`, `secure` in prod, `sameSite: "none"` for cross-origin |
+| Login brute force | `express-rate-limit` |
+| CORS | Explicit allow-list of origins, `credentials: true` |
+| Server identity | Express's `x-powered-by` removed by Helmet |
+| Secrets | `.env` files gitignored; production secrets in platform secret stores; VPS `.env` has `chmod 600` |
+| Auth keys | Dedicated CI deploy SSH key (not personal key); regenerated JWT secrets after any exposure |
+
+### Deferred / future improvements
+
+- HTTPS on the VPS — requires a domain + Let's Encrypt (Step 3.6 in [DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md))
+- Automated database backups via scheduled GitHub Actions workflow (Step 5.7)
+- Cloudflare in front of the VPS for CDN + DDoS + origin hiding (Step 5.9)
+- Container registry (GHCR) + image-based VPS deploys (Step 5.8)
+- Terraform-managed infrastructure (Step 5.10)
 
 ---
 
 ## API Overview
 
-Base URL: `http://localhost:5000`
+Base URL: `http://localhost:5000` (dev) · `https://mern-technotes-website.onrender.com` (prod)
 
 | Method | Endpoint        | Auth                  | Description                                        |
 | ------ | --------------- | --------------------- | -------------------------------------------------- |
+| GET    | `/health`       | public                | JSON health probe (200 ok / 503 degraded)          |
 | POST   | `/auth`         | public (rate-limited) | Login — returns access token + sets refresh cookie |
 | GET    | `/auth/refresh` | refresh cookie        | Issues a new access token                          |
 | POST   | `/auth/logout`  | public                | Clears refresh cookie                              |
@@ -287,11 +461,11 @@ Defined in [client/src/config/roles.ts](client/src/config/roles.ts) and enforced
 
 **Server**
 
-- `npm run dev` — `tsx watch src/server.ts`
+- `npm run dev` — `tsx watch --import ./src/instrument.ts src/server.ts` (Sentry pre-instrumentation + hot reload)
 - `npm run build` — `tsc`
-- `npm start` — `node dist/server.js`
+- `npm start` — `node --import ./dist/instrument.js dist/server.js` (Sentry pre-instrumentation in production)
 - `npm run seed:admin -- <username> <password>` — seed an admin user (requires `npm run build` first; reads `DATABASE_URI` from `.env`)
-- `npm run seed:admin:dev -- <username> <password>` — same, but runs the TypeScript directly via `tsx` (no build step)
+- `npm run seed:admin:dev -- <username> <password>` — same, but runs the TypeScript directly via `tsx`
 
 **Client**
 
@@ -299,6 +473,13 @@ Defined in [client/src/config/roles.ts](client/src/config/roles.ts) and enforced
 - `npm run build` — type-check + production bundle
 - `npm run lint` — ESLint
 - `npm run preview` — preview the production build
+
+---
+
+## 📚 Further reading
+
+- [docs/DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md) — full Phase 1-5 deployment walkthrough with every command explained
+- [docs/DOCKER_GUIDE.md](docs/DOCKER_GUIDE.md) — focused Docker reference (Dockerfile breakdown, daily compose routine, core commands)
 
 ---
 
