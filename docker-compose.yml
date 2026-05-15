@@ -18,6 +18,7 @@ services:
       DATABASE_URI: mongodb://mongo:27017/technote
       ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET}
       REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET}
+      SENTRY_DSN: ${SENTRY_DSN}
     depends_on:
       - mongo
 

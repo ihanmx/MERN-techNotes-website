@@ -1,3 +1,4 @@
+import "./instrument.js";
 import "dotenv/config";
 import express from "express";
 import mongoose from "mongoose";
@@ -5,12 +6,14 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import cookieParser from "cookie-parser";
 import cors from "cors";
-
+import helmet from "helmet";
 import connectDB from "./config/dbConnect.js";
 import corsOptions from "./config/corsOptions.js";
-import { logger, logEvents } from "./middlewares/logger.js";
-import errorHandler from "./middlewares/errorHandler.js";
+import { pinoHttp } from "pino-http";
+import { logger } from "./lib/logger.js";
 
+import errorHandler from "./middlewares/errorHandler.js";
+import * as Sentry from "@sentry/node";
 import rootRoute from "./routes/root.js";
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
@@ -21,10 +24,10 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = Number(process.env.PORT) || 5000;
-
+app.use(helmet({ contentSecurityPolicy: false }));
 connectDB();
 
-app.use(logger);
+app.use(pinoHttp({ logger }));
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
@@ -47,19 +50,16 @@ app.all("/{*path}", (req, res) => {
   }
 });
 
+Sentry.setupExpressErrorHandler(app);
 app.use(errorHandler);
 
 mongoose.connection.once("open", () => {
-  console.log("Connected to MongoDB");
+  logger.info("Connected to MongoDB");
   app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    logger.info({ port: PORT }, "Server started");
   });
 });
 
 mongoose.connection.on("error", (err) => {
-  console.log(err);
-  logEvents(
-    `${err.no}: ${err.code}\t${err.syscall}\t${err.hostname}`,
-    "mongoErrLog.log",
-  );
+  logger.error({ err }, "mongo_connection_error");
 });
